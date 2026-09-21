@@ -1,0 +1,16 @@
+{
+  "name": "marishow",
+  "version": "0.1.0",
+  "description": "마리봇을 브라우저에서 바로 체험해볼 수 있는 디스코드 스타일 데모 플랫폼",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.1",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1"
+  }
+}

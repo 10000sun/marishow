@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>마리봇 체험 플랫폼</title>
+<link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <span class="badge">DEMO PLATFORM</span>
+      <h1>마리봇, 초대하기 전에<br />먼저 체험해보세요</h1>
+      <p>디스코드에 초대하지 않아도 브라우저에서 바로 마리봇과 대화해볼 수 있어요.</p>
+      <a href="#demo" class="cta">지금 체험하기 ↓</a>
+    </div>
+  </header>
+
+  <section class="features">
+    <div class="feature-card">
+      <h3>!안녕</h3>
+      <p>마리에게 인사를 건네보세요.</p>
+    </div>
+    <div class="feature-card">
+      <h3>!운세</h3>
+      <p>오늘의 운세를 알려줘요.</p>
+    </div>
+    <div class="feature-card">
+      <h3>!칭찬</h3>
+      <p>힘이 되는 칭찬 한마디.</p>
+    </div>
+    <div class="feature-card">
+      <h3>자유 대화</h3>
+      <p>명령어 없이도 편하게 말을 걸어보세요.</p>
+    </div>
+  </section>
+
+  <section id="demo" class="demo-section">
+    <h2>마리봇 체험 서버</h2>
+    <p class="demo-caption" id="mode-caption">모드 확인 중...</p>
+
+    <div class="discord-shell">
+      <div class="server-rail">
+        <div class="server-icon active" title="마리봇 테스트 서버">마리</div>
+      </div>
+
+      <div class="channel-list">
+        <div class="server-name">마리봇 테스트 서버</div>
+        <div class="channel-group">텍스트 채널</div>
+        <div class="channel active"># 마리봇-체험</div>
+      </div>
+
+      <div class="chat-area">
+        <div class="chat-header"># 마리봇-체험</div>
+        <div class="messages" id="messages"></div>
+        <form class="composer" id="composer">
+          <input
+            id="message-input"
+            type="text"
+            placeholder="#마리봇-체험(으)로 메시지 보내기"
+            autocomplete="off"
+            maxlength="500"
+          />
+          <button type="submit">전송</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p>이 페이지는 실제 디스코드 서버가 아닌 체험용 웹 데모입니다.</p>
+  </footer>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>
