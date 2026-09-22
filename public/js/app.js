@@ -45,7 +45,12 @@
 
     currentChannelId = id;
     headerTitleEl.textContent = `# ${channel.name}`;
-    input.placeholder = channel.type === "chat" ? "메시지 보내기" : "/ 로 시작하는 명령어를 입력해보세요";
+    input.placeholder =
+      channel.type === "chat"
+        ? "메시지 보내기 (/마리기억 명령어도 여기서 써요)"
+        : channel.type === "idregister"
+        ? "플랫폼 아이디 형식으로 입력해보세요 (예: 라이엇 만해#kr1)"
+        : "/ 로 시작하는 명령어를 입력해보세요";
     hintsEl.hidden = true;
     renderChannelList();
     renderTicker();
@@ -227,7 +232,7 @@
 
   function channelCommands() {
     const channel = currentChannel();
-    if (channel.type !== "commands") return [];
+    if (!channel.commands) return [];
     return MariCommands.allCommandsFor(channel, isAdmin());
   }
 
@@ -321,6 +326,11 @@
   function handleCommandChannel(text, channel) {
     pushLog(channel.id, { who: "user", kind: "text", text });
 
+    if (text === "에바시" && channel.type === "commands") {
+      pushLog(channel.id, { who: "marie", kind: "embed", embed: MariCommands.evashi() });
+      return;
+    }
+
     if (!text.startsWith("/")) {
       pushLog(channel.id, {
         who: "marie",
@@ -334,6 +344,15 @@
     pushLog(channel.id, { who: "marie", kind: "embed", embed: result });
   }
 
+  function handleIdRegister(text, channel) {
+    pushLog(channel.id, { who: "user", kind: "text", text });
+    const result = MariCommands.registerId(text);
+    if (result) {
+      pushLog(channel.id, { who: "marie", kind: "embed", embed: result });
+    }
+    // null이면 아이디 시도로 보지 않고 그냥 잡담으로 취급해 조용히 둔다 (실제 봇과 동일)
+  }
+
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     const text = input.value.trim();
@@ -344,7 +363,11 @@
     input.disabled = true;
 
     const channel = currentChannel();
-    if (channel.type === "chat") {
+    if (channel.type === "idregister") {
+      handleIdRegister(text, channel);
+      input.disabled = false;
+      input.focus();
+    } else if (channel.type === "chat" && !text.startsWith("/")) {
       handleChat(text).finally(() => {
         input.disabled = false;
         input.focus();
