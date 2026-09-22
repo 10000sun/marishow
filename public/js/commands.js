@@ -43,9 +43,31 @@ const MariCommands = (function () {
   const walletCommands = [
     {
       name: "/지갑",
-      description: "내 에바 잔고와 인벤토리 보기",
-      run() {
+      args: "[member]",
+      description: "내 에바 잔고와 인벤토리 보기 (member는 상점주인·관리자 전용)",
+      run(args, ctx) {
         const s = S.get();
+        const target = args[0];
+
+        if (target && target !== "나") {
+          if (!ctx.admin) return errorEmbed("남의 지갑을 보는 건 상점주인·관리자만 할 수 있어. 관리자 모드를 켜줘.");
+          const u = s.users[target];
+          if (!u) return errorEmbed(`"${target}"을(를) 찾을 수 없어요. 유저1, 유저2, 유저3 중에서 골라봐.`);
+          const items = Object.entries(u.inventory)
+            .filter(([, qty]) => qty > 0)
+            .map(([id, qty]) => {
+              const item = s.shop.find((i) => i.id === id);
+              return `${item ? item.name : id} x${qty}`;
+            });
+          return embed(
+            "default",
+            `💳 지갑 · ${target}`,
+            [`잔고: ${S.formatEva(u.wallet)}`],
+            [{ label: "인벤토리", value: items.length ? items.join(", ") : "없음" }],
+            "관리자 조회 · 채널에 공개되는 정보입니다"
+          );
+        }
+
         const items = Object.entries(s.inventory)
           .filter(([, qty]) => qty > 0)
           .map(([id, qty]) => {
@@ -86,7 +108,7 @@ const MariCommands = (function () {
         const [target, amountStr] = args;
         const amount = Number(amountStr);
         if (!target || !Number.isFinite(amount) || amount <= 0) {
-          return errorEmbed("사용법: /송금 대상 금액  (예: /송금 타운가이드 500)");
+          return errorEmbed("사용법: /송금 대상 금액  (예: /송금 유저1 500)");
         }
         const s = S.get();
         if (s.wallet.balance < 0) return errorEmbed("잔고가 마이너스라 송금이 막혀 있어.");
@@ -209,10 +231,23 @@ const MariCommands = (function () {
     },
     {
       name: "/주식 포폴",
-      description: "내 포트폴리오 보기",
-      run() {
+      args: "[member]",
+      description: "포트폴리오 보기 (member는 상점주인·관리자 전용)",
+      run(args, ctx) {
         const s = S.get();
-        const rows = Object.entries(s.portfolio).filter(([, qty]) => qty > 0);
+        const target = args[0];
+        let portfolio = s.portfolio;
+        let label = "📊 포트폴리오 (나만 보임)";
+
+        if (target && target !== "나") {
+          if (!ctx.admin) return errorEmbed("남의 포트폴리오는 관리자·상점주인만 볼 수 있어. 관리자 모드를 켜줘.");
+          const u = s.users[target];
+          if (!u) return errorEmbed(`"${target}"을(를) 찾을 수 없어요. 유저1, 유저2, 유저3 중에서 골라봐.`);
+          portfolio = u.portfolio;
+          label = `📊 포트폴리오 · ${target} (관리자 조회)`;
+        }
+
+        const rows = Object.entries(portfolio).filter(([, qty]) => qty > 0);
         if (!rows.length) return embed("default", "📊 포트폴리오", ["보유 중인 종목이 없어요."]);
         let total = 0;
         const lines = rows.map(([name, qty]) => {
@@ -222,7 +257,7 @@ const MariCommands = (function () {
           return `${name} ${qty}주 · 평가액 ${value.toLocaleString("ko-KR")} 에바`;
         });
         lines.push(`총 평가액: ${S.formatEva(total)}`);
-        return embed("default", "📊 포트폴리오 (나만 보임)", lines);
+        return embed("default", label, lines);
       },
     },
     {
@@ -430,9 +465,9 @@ const MariCommands = (function () {
   // ============ 미니게임 ============
   const hiLow = { open: false, current: null };
   const leaderboard = [
-    { name: "타운가이드", wins: 12 },
-    { name: "여백이", wins: 9 },
-    { name: "악동왕", wins: 7 },
+    { name: "유저2", wins: 12 },
+    { name: "유저1", wins: 9 },
+    { name: "유저3", wins: 7 },
   ];
 
   function resolveHiLow(pick) {
@@ -502,25 +537,39 @@ const MariCommands = (function () {
   const profileCommands = [
     {
       name: "/프로필",
-      description: "내 프로필 카드 보기",
-      run() {
-        const p = S.get().profile;
-        return embed("default", "🪪 프로필", [], Object.entries(p).map(([label, value]) => ({ label, value })), "채널에 공개되는 카드입니다");
+      args: "[유저]",
+      description: "프로필 카드 보기 (누구나 조회 가능)",
+      run(args) {
+        const s = S.get();
+        const target = args[0] || "나";
+        const p = target === "나" ? s.profile : s.users[target] && s.users[target].profile;
+        if (!p) return errorEmbed(`"${target}"의 프로필을 찾을 수 없어요. 유저1, 유저2, 유저3 중에서 골라봐.`);
+        return embed(
+          "default",
+          `🪪 프로필${target !== "나" ? " · " + target : ""}`,
+          [],
+          Object.entries(p).map(([label, value]) => ({ label, value })),
+          "채널에 공개되는 카드입니다"
+        );
       },
     },
     {
       name: "/위키 조회",
-      description: "멤버 TMI 카드 보기",
-      run() {
-        const w = S.get().wiki["나"];
-        return embed("default", "📖 위키 · 나", [`좌우명: ${w.좌우명}`, `서식지: ${w.서식지}`, `MBTI: ${w.mbti}`, `TMI: ${w.tmi}`]);
+      args: "[대상]",
+      description: "멤버 TMI 카드 보기 (누구나 조회 가능)",
+      run(args) {
+        const s = S.get();
+        const target = args[0] || "나";
+        const w = target === "나" ? s.wiki["나"] : s.users[target] && s.users[target].wiki;
+        if (!w) return errorEmbed(`"${target}"의 위키 항목을 찾을 수 없어요.`);
+        return embed("default", `📖 위키 · ${target}`, [`좌우명: ${w.좌우명}`, `서식지: ${w.서식지}`, `MBTI: ${w.mbti}`, `TMI: ${w.tmi}`]);
       },
     },
     {
       name: "/위키 목록",
       description: "서버 멤버 위키 목록",
       run() {
-        return embed("default", "📖 위키 목록", ["나 · 타운가이드 · 여백이 · 악동왕", "각 이름으로 /위키 조회를 써보세요 (데모는 '나'만 실데이터)"]);
+        return embed("default", "📖 위키 목록", ["나 · 유저1 · 유저2 · 유저3", "각 이름으로 /위키 조회 이름 을 써보세요"]);
       },
     },
     {
@@ -741,15 +790,21 @@ const MariCommands = (function () {
     {
       name: "/지급",
       args: "대상 금액",
-      description: "멤버에게 에바 지급",
+      description: "멤버에게 에바 지급 (대상: 나 / 유저1~3)",
       adminOnly: true,
       run(args) {
         const [target, amountStr] = args;
         const amount = Number(amountStr);
-        if (!target || !Number.isFinite(amount)) return errorEmbed("사용법: /지급 대상 금액");
+        if (!target || !Number.isFinite(amount)) return errorEmbed("사용법: /지급 대상 금액  (예: /지급 유저1 1000)");
         const s = S.get();
-        s.wallet.balance += amount;
-        S.addHistory("관리자 지급", amount, `관리자가 ${target}에게 지급`);
+        if (target === "나") {
+          s.wallet.balance += amount;
+          S.addHistory("관리자 지급", amount, "관리자가 나에게 지급");
+        } else {
+          const u = s.users[target];
+          if (!u) return errorEmbed(`"${target}"을(를) 찾을 수 없어요. 나, 유저1, 유저2, 유저3 중에서 골라봐.`);
+          u.wallet += amount;
+        }
         S.notify();
         return embed("admin", "🛠 지급 완료", [`${target}에게 ${S.formatEva(amount)}를 지급했어요.`]);
       },
@@ -830,14 +885,16 @@ const MariCommands = (function () {
     {
       name: "/주식 지급",
       args: "대상 종목 수량",
-      description: "특정 대상에게 주식 직접 지급 (데모는 '나'에게 반영)",
+      description: "특정 대상에게 주식 직접 지급 (대상: 나 / 유저1~3)",
       adminOnly: true,
       run(args) {
         const [target, name, qtyStr] = args;
         const qty = Number(qtyStr);
         const s = S.get();
         if (!s.stocks.some((st) => st.name === name) || !Number.isFinite(qty)) return errorEmbed("사용법: /주식 지급 대상 종목 수량");
-        s.portfolio[name] = (s.portfolio[name] || 0) + qty;
+        const portfolio = target === "나" ? s.portfolio : s.users[target] && s.users[target].portfolio;
+        if (!portfolio) return errorEmbed(`"${target}"을(를) 찾을 수 없어요. 나, 유저1, 유저2, 유저3 중에서 골라봐.`);
+        portfolio[name] = (portfolio[name] || 0) + qty;
         S.notify();
         return embed("admin", "🛠 주식 지급", [`${target}에게 ${name} ${qty}주를 지급했어요.`]);
       },
@@ -845,15 +902,17 @@ const MariCommands = (function () {
     {
       name: "/주식 회수",
       args: "대상 종목 수량",
-      description: "특정 대상의 주식 회수 (데모는 '나'에게 반영)",
+      description: "특정 대상의 주식 회수 (대상: 나 / 유저1~3)",
       adminOnly: true,
       run(args) {
         const [target, name, qtyStr] = args;
         const qty = Number(qtyStr);
         const s = S.get();
-        const holding = s.portfolio[name] || 0;
         if (!Number.isFinite(qty)) return errorEmbed("사용법: /주식 회수 대상 종목 수량");
-        s.portfolio[name] = Math.max(0, holding - qty);
+        const portfolio = target === "나" ? s.portfolio : s.users[target] && s.users[target].portfolio;
+        if (!portfolio) return errorEmbed(`"${target}"을(를) 찾을 수 없어요. 나, 유저1, 유저2, 유저3 중에서 골라봐.`);
+        const holding = portfolio[name] || 0;
+        portfolio[name] = Math.max(0, holding - qty);
         S.notify();
         return embed("admin", "🛠 주식 회수", [`${target}의 ${name} ${qty}주를 회수했어요.`]);
       },
@@ -1068,13 +1127,18 @@ const MariCommands = (function () {
     {
       name: "/위키 삭제",
       args: "대상",
-      description: "대상의 위키 항목 삭제",
+      description: "대상의 위키 항목 삭제 (대상: 나 / 유저1~3)",
       adminOnly: true,
       run(args) {
         const target = args[0];
         const s = S.get();
-        if (!target || !s.wiki[target]) return errorEmbed("삭제할 위키 항목을 찾을 수 없어요.");
-        delete s.wiki[target];
+        if (target === "나") {
+          if (!s.wiki["나"]) return errorEmbed("삭제할 위키 항목을 찾을 수 없어요.");
+          delete s.wiki["나"];
+        } else {
+          if (!target || !s.users[target] || !s.users[target].wiki) return errorEmbed("삭제할 위키 항목을 찾을 수 없어요.");
+          delete s.users[target].wiki;
+        }
         return embed("admin", "🛠 위키 삭제", [`${target}의 위키 항목을 지웠어요.`]);
       },
     },
@@ -1116,6 +1180,7 @@ const MariCommands = (function () {
 
   // ============ 채널 정의 ============
   const CHANNELS = [
+    { id: "help", name: "도움말", type: "help", intro: "모든 채널의 명령어를 한눈에 모아뒀어요. 카테고리별로 눌러서 이동해보세요." },
     { id: "chat", name: "마리-대화", type: "chat", commands: memoryCommands, intro: "마리를 멘션하듯 자유롭게 말을 걸어보세요. 슬래시 명령어는 /마리기억 계열만 여기서 써요." },
     { id: "wallet", name: "지갑-경제", type: "commands", commands: walletCommands, intro: "지갑, 송금, 출석, 캠프 세금을 체험할 수 있어요." },
     { id: "stock", name: "주식", type: "commands", commands: stockCommands, intro: "시세는 4초마다 자동으로 움직여요. /주식 목록으로 먼저 확인해보세요." },
@@ -1129,27 +1194,18 @@ const MariCommands = (function () {
     { id: "admin", name: "관리자-전용", type: "commands", commands: adminCommands, adminOnly: true, intro: "관리자 모드에서만 보이는 채널이에요. 여기서 바꾼 값은 다른 채널에 실시간으로 반영돼요." },
   ];
 
-  // 모든 명령어 채널(및 잡담 채널)에 /도움말을 공통으로 추가.
-  CHANNELS.forEach((channel) => {
-    if (!channel.commands) return;
-    channel.commands.push({
-      name: "/도움말",
-      args: "[관리자]",
-      description: "카테고리별 명령어 안내",
-      run(args, ctx) {
-        const wantAdmin = args[0] === "관리자";
-        if (wantAdmin && !ctx.admin) return errorEmbed("관리자 카테고리는 관리자 모드에서만 볼 수 있어.");
-        const list = CHANNELS.filter((c) => (wantAdmin ? true : !c.adminOnly));
-        return embed(
-          "default",
-          wantAdmin ? "📚 도움말 (관리자 모드)" : "📚 도움말",
-          list.map((c) => `#${c.name} — ${c.intro}`),
-          [],
-          "왼쪽 채널 목록에서 골라 이동해보세요"
-        );
-      },
+  // "도움말" 채널 전용: 모든 채널의 명령어를 채널별로 묶어서 한 번에 보여준다.
+  function buildHelp(isAdminCtx) {
+    return CHANNELS.filter((c) => c.id !== "help" && (isAdminCtx || !c.adminOnly)).map((c) => {
+      if (!c.commands) {
+        return embed("default", `# ${c.name}`, [c.intro]);
+      }
+      const lines = allCommandsFor(c, isAdminCtx).map(
+        (cmd) => `${cmd.name}${cmd.args ? " " + cmd.args : ""} — ${cmd.description}`
+      );
+      return embed("default", `# ${c.name}`, lines);
     });
-  });
+  }
 
   // ============ 특수: 아이디 자동등록 (슬래시 명령어 아님) ============
   function registerId(text) {
@@ -1230,5 +1286,5 @@ const MariCommands = (function () {
     return result;
   }
 
-  return { CHANNELS, allCommandsFor, execute, registerId, evashi };
+  return { CHANNELS, allCommandsFor, execute, registerId, evashi, buildHelp };
 })();

@@ -36,20 +36,52 @@ const MariState = (function () {
     profile: { 닉네임: "체험유저", 레벨: "Lv.7", 캠프: "여백", 업적: "출석왕, 초보 투자자" },
     wiki: { 나: { 좌우명: "오늘도 무사히", 서식지: "지갑 채널", mbti: "ENFP", tmi: "복권을 은근히 자주 삽니다" } },
     birthday: null, // { year, month, day } | null
-    registeredIds: { 나: [] }, // 대상 -> [{platform, value}]
+    registeredIds: {
+      나: [],
+      유저1: [{ platform: "Steam", value: "76561198011112222" }],
+      유저2: [{ platform: "Riot", value: "여백러버#kr2" }],
+      유저3: [],
+    }, // 대상 -> [{platform, value}]
+
+    // 다른 서버 멤버가 있다는 걸 보여주기 위한 목 유저 3명.
+    // 관리자 모드일 때만 /지갑, /주식 포폴로 조회 가능 (실제 봇 권한 규칙과 동일).
+    // 위키·프로필·아이디는 실제 봇처럼 관리자 아니어도 누구나 조회 가능.
+    users: {
+      유저1: {
+        wallet: 5400,
+        inventory: { coupon: 2 },
+        portfolio: { 은하전자: 3 },
+        profile: { 닉네임: "유저1", 레벨: "Lv.3", 캠프: "나래", 업적: "신입" },
+        wiki: { 좌우명: "느긋하게 살자", 서식지: "상점 채널", mbti: "ISFP", tmi: "단 거 좋아함" },
+      },
+      유저2: {
+        wallet: 15200,
+        inventory: { megaphone: 1 },
+        portfolio: { 나래해운: 2, 마리광산: 1 },
+        profile: { 닉네임: "유저2", 레벨: "Lv.12", 캠프: "악동", 업적: "주식 고수, 출석왕" },
+        wiki: { 좌우명: "가즈아", 서식지: "주식 채널", mbti: "ESTP", tmi: "새벽에 주식 확인함" },
+      },
+      유저3: {
+        wallet: 2100,
+        inventory: {},
+        portfolio: {},
+        profile: { 닉네임: "유저3", 레벨: "Lv.1", 캠프: "여백", 업적: "없음" },
+        wiki: { 좌우명: "천천히 배우는 중", 서식지: "잡담 채널", mbti: "INFP", tmi: "이제 막 들어옴" },
+      },
+    },
 
     campTax: { rate: 0.1, camp: "여백", paid: false, treasury: 0 },
     tourRequests: [], // { id, camp, date, status }
 
     up: {
       ranking: [
-        { name: "타운가이드", count: 18 },
-        { name: "여백이", count: 12 },
+        { name: "유저2", count: 18 },
+        { name: "유저1", count: 12 },
         { name: "나", count: 4 },
       ],
       daily: [
-        { date: "09/20", entries: ["타운가이드 x2", "여백이 x1"] },
-        { date: "09/21", entries: ["나 x1", "타운가이드 x1"] },
+        { date: "09/20", entries: ["유저2 x2", "유저1 x1"] },
+        { date: "09/21", entries: ["나 x1", "유저2 x1"] },
       ],
     },
 
@@ -63,9 +95,9 @@ const MariState = (function () {
 
     roster: [
       { name: "체험유저(나)", camp: "여백", role: "일반 멤버" },
-      { name: "타운가이드", camp: "-", role: "타운가이드" },
-      { name: "여백이", camp: "여백", role: "캠프장" },
-      { name: "악동왕", camp: "악동", role: "캠프장" },
+      { name: "유저1", camp: "나래", role: "일반 멤버" },
+      { name: "유저2", camp: "악동", role: "캠프장" },
+      { name: "유저3", camp: "여백", role: "일반 멤버" },
     ],
     grantedRoles: [],
     auditLog: [],
