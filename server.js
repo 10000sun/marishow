@@ -1,7 +1,7 @@
 require("dotenv").config();
 const path = require("path");
 const express = require("express");
-const { getReply, COMMANDS } = require("./bot/marie");
+const { getReply } = require("./bot/marie");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -11,10 +11,6 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.get("/api/status", (req, res) => {
   res.json({ mode: process.env.ANTHROPIC_API_KEY ? "live" : "demo" });
-});
-
-app.get("/api/commands", (req, res) => {
-  res.json({ commands: COMMANDS });
 });
 
 app.post("/api/chat", async (req, res) => {
