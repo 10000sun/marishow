@@ -3,8 +3,11 @@
   const form = document.getElementById("composer");
   const input = document.getElementById("message-input");
   const modeCaption = document.getElementById("mode-caption");
+  const hintsEl = document.getElementById("command-hints");
 
   const history = [];
+  let commands = [];
+  let activeHintIndex = -1;
 
   function timeNow() {
     return new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
@@ -51,11 +54,98 @@
       modeCaption.textContent =
         data.mode === "live"
           ? "실시간 AI 응답 모드로 연결되어 있어요."
-          : "데모 모드예요. !도움말 / !운세 / !칭찬 명령어로 체험해보세요.";
+          : "데모 모드예요. /를 입력하면 사용 가능한 명령어를 볼 수 있어요.";
     } catch {
-      modeCaption.textContent = "데모 모드예요. !도움말 / !운세 / !칭찬 명령어로 체험해보세요.";
+      modeCaption.textContent = "데모 모드예요. /를 입력하면 사용 가능한 명령어를 볼 수 있어요.";
     }
   }
+
+  async function loadCommands() {
+    try {
+      const res = await fetch("/api/commands");
+      const data = await res.json();
+      commands = Array.isArray(data.commands) ? data.commands : [];
+    } catch {
+      commands = [];
+    }
+  }
+
+  function renderHints(list) {
+    hintsEl.innerHTML = "";
+    activeHintIndex = list.length ? 0 : -1;
+
+    list.forEach((command, index) => {
+      const li = document.createElement("li");
+      li.className = `command-hint-item${index === activeHintIndex ? " active" : ""}`;
+
+      const nameEl = document.createElement("span");
+      nameEl.className = "command-hint-name";
+      nameEl.textContent = command.name;
+
+      const descEl = document.createElement("span");
+      descEl.className = "command-hint-desc";
+      descEl.textContent = command.description;
+
+      li.appendChild(nameEl);
+      li.appendChild(descEl);
+      li.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        selectCommand(command.name);
+      });
+
+      hintsEl.appendChild(li);
+    });
+
+    hintsEl.hidden = list.length === 0;
+  }
+
+  function selectCommand(name) {
+    input.value = `${name} `;
+    hintsEl.hidden = true;
+    input.focus();
+  }
+
+  function updateHints() {
+    const value = input.value;
+    if (!value.startsWith("/")) {
+      hintsEl.hidden = true;
+      return;
+    }
+
+    const query = value.slice(1).trim();
+    const matches = commands.filter((c) => c.name.slice(1).startsWith(query));
+    renderHints(matches);
+  }
+
+  input.addEventListener("input", updateHints);
+
+  input.addEventListener("keydown", (e) => {
+    if (hintsEl.hidden) return;
+    const items = Array.from(hintsEl.children);
+    if (!items.length) return;
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      activeHintIndex = (activeHintIndex + 1) % items.length;
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      activeHintIndex = (activeHintIndex - 1 + items.length) % items.length;
+    } else if (e.key === "Escape") {
+      hintsEl.hidden = true;
+      return;
+    } else if (e.key === "Tab" || (e.key === "Enter" && activeHintIndex >= 0)) {
+      e.preventDefault();
+      const name = commands.filter((c) => c.name.slice(1).startsWith(input.value.slice(1).trim()))[
+        activeHintIndex
+      ]?.name;
+      if (name) selectCommand(name);
+      return;
+    } else {
+      return;
+    }
+
+    items.forEach((item, i) => item.classList.toggle("active", i === activeHintIndex));
+  });
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -63,6 +153,7 @@
     if (!text) return;
 
     input.value = "";
+    hintsEl.hidden = true;
     input.disabled = true;
     appendMessage({ who: "user", text });
     history.push({ role: "user", content: text });
@@ -89,6 +180,7 @@
     }
   });
 
-  appendMessage({ who: "marie", text: "안녕! 나 마리야. !도움말이라고 쳐보면 뭘 할 수 있는지 알려줄게 🙂" });
+  appendMessage({ who: "marie", text: "안녕! 나 마리야. /를 입력하면 뭘 할 수 있는지 알려줄게 🙂" });
   loadStatus();
+  loadCommands();
 })();

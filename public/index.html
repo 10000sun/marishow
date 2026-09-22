@@ -53,16 +53,19 @@
       <div class="chat-area">
         <div class="chat-header"># 마리봇-체험</div>
         <div class="messages" id="messages"></div>
-        <form class="composer" id="composer">
-          <input
-            id="message-input"
-            type="text"
-            placeholder="#마리봇-체험(으)로 메시지 보내기"
-            autocomplete="off"
-            maxlength="500"
-          />
-          <button type="submit">전송</button>
-        </form>
+        <div class="composer-wrap">
+          <ul class="command-hints" id="command-hints" hidden></ul>
+          <form class="composer" id="composer">
+            <input
+              id="message-input"
+              type="text"
+              placeholder="#마리봇-체험(으)로 메시지 보내기"
+              autocomplete="off"
+              maxlength="500"
+            />
+            <button type="submit">전송</button>
+          </form>
+        </div>
       </div>
     </div>
   </section>

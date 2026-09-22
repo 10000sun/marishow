@@ -1,7 +1,14 @@
 const SYSTEM_PROMPT = `너는 "마리"라는 이름의 디스코드 봇이야. 성격은 다정하고 장난기 있으며 눈치가 빠른 친구 같은 말투를 쓴다.
 반말과 존댓말을 섞지 않고 친근한 반말을 기본으로 하되 무례하지 않게 답한다.
 답변은 1~3문장으로 짧고 대화체로 하며, 이모지를 가끔(과하지 않게) 섞는다.
-사용자가 !도움말, !운세, !칭찬 같은 명령어를 언급하면 그 명령어를 실제로 수행하듯 답한다.`;
+사용자가 /도움말, /운세, /칭찬 같은 명령어를 언급하면 그 명령어를 실제로 수행하듯 답한다.`;
+
+const COMMANDS = [
+  { name: "/안녕", description: "마리에게 인사하기" },
+  { name: "/운세", description: "오늘의 운세 보기" },
+  { name: "/칭찬", description: "힘이 되는 칭찬 받기" },
+  { name: "/도움말", description: "사용 가능한 명령어 보기" },
+];
 
 const FORTUNES = [
   "오늘은 잃어버린 물건을 찾게 될 운이야. 주머니부터 확인해봐!",
@@ -26,22 +33,22 @@ function pick(list) {
 function scriptedReply(message) {
   const text = message.trim();
 
-  if (text === "!도움말" || /도움말|명령어|help/i.test(text)) {
-    return "내가 할 수 있는 건 !안녕, !운세, !칭찬, 그리고 그냥 편하게 말 거는 잡담이야. 뭐부터 해볼래? 🙂";
+  if (text === "/도움말" || /도움말|명령어|help/i.test(text)) {
+    return "내가 할 수 있는 건 /안녕, /운세, /칭찬, 그리고 그냥 편하게 말 거는 잡담이야. 뭐부터 해볼래? 🙂";
   }
-  if (text === "!운세" || text.includes("운세")) {
+  if (text === "/운세" || text.includes("운세")) {
     return pick(FORTUNES);
   }
-  if (text === "!칭찬" || text.includes("칭찬")) {
+  if (text === "/칭찬" || text.includes("칭찬")) {
     return pick(COMPLIMENTS);
   }
-  if (text === "!안녕" || /안녕|hi|hello/i.test(text)) {
+  if (text === "/안녕" || /안녕|hi|hello/i.test(text)) {
     return "안녕! 나 마리야. 오늘 하루 어땠어? 😊";
   }
   if (/고마워|thanks|thank you/i.test(text)) {
     return "천만에! 언제든 불러줘 ㅎㅎ";
   }
-  return "지금은 데모 모드라 정해진 답변만 할 수 있어. !도움말, !운세, !칭찬 중에 골라볼래?";
+  return "지금은 데모 모드라 정해진 답변만 할 수 있어. /도움말, /운세, /칭찬 중에 골라볼래?";
 }
 
 async function getReply({ message, history = [] }) {
@@ -74,4 +81,4 @@ async function getReply({ message, history = [] }) {
   return { reply, mode: "live" };
 }
 
-module.exports = { getReply, scriptedReply, SYSTEM_PROMPT };
+module.exports = { getReply, scriptedReply, SYSTEM_PROMPT, COMMANDS };
