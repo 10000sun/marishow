@@ -1178,13 +1178,42 @@ const MariCommands = (function () {
     },
   ];
 
+  // ============ 도움말 ============
+  // 채널에 들어오자마자 전부 뿌려주지 않고, /도움말을 직접 치도록 유도한다.
+  // 관리자 모드 여부에 따라 결과가 달라진다는 걸 눈에 띄게 알려준다.
+  function buildHelpEmbed(isAdminCtx) {
+    const list = CHANNELS.filter((c) => c.id !== "help" && (isAdminCtx || !c.adminOnly));
+    const lines = [];
+    list.forEach((c) => {
+      lines.push(`▸ #${c.name} — ${c.intro}`);
+      if (c.highlights && c.highlights.length) {
+        lines.push(`    예: ${c.highlights.join(", ")}`);
+      }
+    });
+    const footer = isAdminCtx
+      ? "🛠 지금 관리자 모드로 보고 있어서, 유저에게는 안 보이는 #관리자-전용 카테고리까지 함께 표시했어요."
+      : "🔒 지금은 유저 모드예요. 우측 상단 토글로 관리자 모드를 켜고 /도움말을 다시 치면 #관리자-전용 카테고리도 볼 수 있어요.";
+    return embed("default", isAdminCtx ? "📚 도움말 (관리자 모드)" : "📚 도움말", lines, [], footer);
+  }
+
+  const helpCommands = [
+    {
+      name: "/도움말",
+      description: "카테고리별 명령어 안내 (관리자 모드면 내용이 달라져요)",
+      run(args, ctx) {
+        return buildHelpEmbed(ctx.admin);
+      },
+    },
+  ];
+
   // ============ 채널 정의 ============
   const CHANNELS = [
     {
       id: "help",
       name: "도움말",
-      type: "help",
-      intro: "채널마다 뭘 할 수 있는지 살짝만 보여줄게요. 자세한 건 그 채널에 가서 \"/\"를 입력해보세요 — 쓸 수 있는 명령어가 자동완성으로 쭉 떠요.",
+      type: "commands",
+      commands: helpCommands,
+      intro: "여기서 /도움말을 쳐보세요. 관리자 모드 켰을 때랑 껐을 때 결과가 달라요!",
     },
     { id: "chat", name: "마리-대화", type: "chat", commands: memoryCommands, highlights: ["/마리기억 목록"], intro: "마리를 멘션하듯 자유롭게 말을 걸어보세요. 슬래시 명령어는 /마리기억 계열만 여기서 써요." },
     { id: "wallet", name: "지갑-경제", type: "commands", commands: walletCommands, highlights: ["/지갑", "/출석", "/송금"], intro: "지갑, 송금, 출석, 캠프 세금을 체험할 수 있어요." },
@@ -1198,22 +1227,6 @@ const MariCommands = (function () {
     { id: "misc", name: "기타", type: "commands", commands: miscCommands, highlights: ["/통계", "/기능제어 상태"], intro: "특정 카테고리에 딱 들어맞지 않는 기능들을 모아뒀어요." },
     { id: "admin", name: "관리자-전용", type: "commands", commands: adminCommands, adminOnly: true, highlights: ["/기능제어 정지", "/지급", "/주식 변동"], intro: "관리자 모드에서만 보이는 채널이에요. 여기서 바꾼 값은 다른 채널에 실시간으로 반영돼요." },
   ];
-
-  // "도움말" 채널 전용: 채널마다 전체 명령어를 다 나열하지 않고, 대표 명령어 몇 개만 맛보기로
-  // 보여줘서 직접 그 채널에 가서 "/"를 입력해보도록 유도한다.
-  function buildHelp(isAdminCtx) {
-    return CHANNELS.filter((c) => c.id !== "help" && (isAdminCtx || !c.adminOnly)).map((c) => {
-      if (!c.commands) {
-        return embed("default", `# ${c.name}`, [c.intro]);
-      }
-      const lines = (c.highlights || [])
-        .map((name) => c.commands.find((cmd) => cmd.name === name))
-        .filter(Boolean)
-        .map((cmd) => `${cmd.name}${cmd.args ? " " + cmd.args : ""} — ${cmd.description}`);
-      lines.push(`그 외에도 더 있어요 — #${c.name}에서 "/"만 입력해보세요.`);
-      return embed("default", `# ${c.name}`, [c.intro, ...lines]);
-    });
-  }
 
   // ============ 특수: 아이디 자동등록 (슬래시 명령어 아님) ============
   function registerId(text) {
@@ -1294,5 +1307,5 @@ const MariCommands = (function () {
     return result;
   }
 
-  return { CHANNELS, allCommandsFor, execute, registerId, evashi, buildHelp };
+  return { CHANNELS, allCommandsFor, execute, registerId, evashi };
 })();

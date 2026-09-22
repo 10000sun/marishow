@@ -45,11 +45,9 @@
 
     currentChannelId = id;
     headerTitleEl.textContent = `# ${channel.name}`;
-    input.disabled = channel.type === "help";
+    input.disabled = false;
     input.placeholder =
-      channel.type === "help"
-        ? "도움말 채널은 읽기 전용이에요. 왼쪽에서 다른 채널로 이동해보세요"
-        : channel.type === "chat"
+      channel.type === "chat"
         ? "메시지 보내기 (/마리기억 명령어도 여기서 써요)"
         : channel.type === "idregister"
         ? "플랫폼 아이디 형식으로 입력해보세요 (예: 라이엇 만해#kr1)"
@@ -57,14 +55,8 @@
     hintsEl.hidden = true;
     renderChannelList();
     renderTicker();
-
-    if (channel.type === "help") {
-      channelLogs[id] = MariCommands.buildHelp(isAdmin()).map((e) => ({ who: "marie", kind: "embed", embed: e }));
-      renderMessages();
-      return;
-    }
-
     renderMessages();
+
     if (!channelLogs[id] || !channelLogs[id].length) {
       pushLog(id, { who: "marie", kind: "text", text: channel.intro });
     }
@@ -234,10 +226,6 @@
     if (!MariState.get().admin && currentChannelId === "admin") {
       switchChannel("chat");
       return;
-    }
-    if (currentChannelId === "help") {
-      channelLogs.help = MariCommands.buildHelp(isAdmin()).map((e) => ({ who: "marie", kind: "embed", embed: e }));
-      renderMessages();
     }
     renderChannelList();
     updateHints();
@@ -409,10 +397,7 @@
     input.disabled = true;
 
     const channel = currentChannel();
-    if (channel.type === "help") {
-      input.disabled = false;
-      return;
-    } else if (channel.type === "idregister") {
+    if (channel.type === "idregister") {
       handleIdRegister(text, channel);
       input.disabled = false;
       input.focus();
