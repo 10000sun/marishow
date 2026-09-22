@@ -333,6 +333,21 @@ body {
   font-size: 11px;
 }
 
+.interaction-tag {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.interaction-tag span:first-child {
+  font-family: monospace;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
 .msg-text {
   color: var(--text);
   font-size: 15px;

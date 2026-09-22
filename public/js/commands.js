@@ -1180,30 +1180,38 @@ const MariCommands = (function () {
 
   // ============ 채널 정의 ============
   const CHANNELS = [
-    { id: "help", name: "도움말", type: "help", intro: "모든 채널의 명령어를 한눈에 모아뒀어요. 카테고리별로 눌러서 이동해보세요." },
-    { id: "chat", name: "마리-대화", type: "chat", commands: memoryCommands, intro: "마리를 멘션하듯 자유롭게 말을 걸어보세요. 슬래시 명령어는 /마리기억 계열만 여기서 써요." },
-    { id: "wallet", name: "지갑-경제", type: "commands", commands: walletCommands, intro: "지갑, 송금, 출석, 캠프 세금을 체험할 수 있어요." },
-    { id: "stock", name: "주식", type: "commands", commands: stockCommands, intro: "시세는 4초마다 자동으로 움직여요. /주식 목록으로 먼저 확인해보세요." },
-    { id: "shop", name: "상점", type: "commands", commands: shopCommands, intro: "/상점 목록으로 매대를 확인하고 구매/되팔기/선물/견학신청을 해보세요." },
-    { id: "lottery", name: "복권", type: "commands", commands: lotteryCommands, intro: "복권을 사고 /복권 당첨확인으로 바로 추첨 결과를 볼 수 있어요." },
-    { id: "minigame", name: "미니게임", type: "commands", commands: minigameCommands, intro: "/하이로우로 판을 연 다음 /하이 또는 /로우로 맞혀보세요. \"에바시\"라고만 쳐도 반응해요!" },
-    { id: "profile", name: "프로필-위키", type: "commands", commands: profileCommands, intro: "프로필, 위키, 생일, 아이디 조회를 체험할 수 있어요." },
+    {
+      id: "help",
+      name: "도움말",
+      type: "help",
+      intro: "채널마다 뭘 할 수 있는지 살짝만 보여줄게요. 자세한 건 그 채널에 가서 \"/\"를 입력해보세요 — 쓸 수 있는 명령어가 자동완성으로 쭉 떠요.",
+    },
+    { id: "chat", name: "마리-대화", type: "chat", commands: memoryCommands, highlights: ["/마리기억 목록"], intro: "마리를 멘션하듯 자유롭게 말을 걸어보세요. 슬래시 명령어는 /마리기억 계열만 여기서 써요." },
+    { id: "wallet", name: "지갑-경제", type: "commands", commands: walletCommands, highlights: ["/지갑", "/출석", "/송금"], intro: "지갑, 송금, 출석, 캠프 세금을 체험할 수 있어요." },
+    { id: "stock", name: "주식", type: "commands", commands: stockCommands, highlights: ["/주식 목록", "/주식 매수", "/주식 포폴"], intro: "시세는 4초마다 자동으로 움직여요. /주식 목록으로 먼저 확인해보세요." },
+    { id: "shop", name: "상점", type: "commands", commands: shopCommands, highlights: ["/상점 목록", "/상점 구매"], intro: "/상점 목록으로 매대를 확인하고 구매/되팔기/선물/견학신청을 해보세요." },
+    { id: "lottery", name: "복권", type: "commands", commands: lotteryCommands, highlights: ["/복권 구매", "/복권 당첨확인"], intro: "복권을 사고 /복권 당첨확인으로 바로 추첨 결과를 볼 수 있어요." },
+    { id: "minigame", name: "미니게임", type: "commands", commands: minigameCommands, highlights: ["/하이로우", "/고확"], intro: "/하이로우로 판을 연 다음 /하이 또는 /로우로 맞혀보세요. \"에바시\"라고만 쳐도 반응해요!" },
+    { id: "profile", name: "프로필-위키", type: "commands", commands: profileCommands, highlights: ["/프로필", "/위키 조회", "/생일 확인"], intro: "프로필, 위키, 생일, 아이디 조회를 체험할 수 있어요." },
     { id: "idregister", name: "아이디등록", type: "idregister", intro: "여기서는 명령어 없이 그냥 '플랫폼 아이디' 형식으로 채팅을 치면 마리가 알아서 등록해요. 예: 라이엇 만해#kr1" },
-    { id: "up-snooze", name: "홍보-스누즈", type: "commands", commands: upSnoozeCommands, intro: "홍보 집계 순위와 나중에 답장(스누즈) 기능을 체험할 수 있어요." },
-    { id: "misc", name: "기타", type: "commands", commands: miscCommands, intro: "특정 카테고리에 딱 들어맞지 않는 기능들을 모아뒀어요 (통계, 기능제어 상태 등)." },
-    { id: "admin", name: "관리자-전용", type: "commands", commands: adminCommands, adminOnly: true, intro: "관리자 모드에서만 보이는 채널이에요. 여기서 바꾼 값은 다른 채널에 실시간으로 반영돼요." },
+    { id: "up-snooze", name: "홍보-스누즈", type: "commands", commands: upSnoozeCommands, highlights: ["/업 순위", "/스누즈 예약"], intro: "홍보 집계 순위와 나중에 답장(스누즈) 기능을 체험할 수 있어요." },
+    { id: "misc", name: "기타", type: "commands", commands: miscCommands, highlights: ["/통계", "/기능제어 상태"], intro: "특정 카테고리에 딱 들어맞지 않는 기능들을 모아뒀어요." },
+    { id: "admin", name: "관리자-전용", type: "commands", commands: adminCommands, adminOnly: true, highlights: ["/기능제어 정지", "/지급", "/주식 변동"], intro: "관리자 모드에서만 보이는 채널이에요. 여기서 바꾼 값은 다른 채널에 실시간으로 반영돼요." },
   ];
 
-  // "도움말" 채널 전용: 모든 채널의 명령어를 채널별로 묶어서 한 번에 보여준다.
+  // "도움말" 채널 전용: 채널마다 전체 명령어를 다 나열하지 않고, 대표 명령어 몇 개만 맛보기로
+  // 보여줘서 직접 그 채널에 가서 "/"를 입력해보도록 유도한다.
   function buildHelp(isAdminCtx) {
     return CHANNELS.filter((c) => c.id !== "help" && (isAdminCtx || !c.adminOnly)).map((c) => {
       if (!c.commands) {
         return embed("default", `# ${c.name}`, [c.intro]);
       }
-      const lines = allCommandsFor(c, isAdminCtx).map(
-        (cmd) => `${cmd.name}${cmd.args ? " " + cmd.args : ""} — ${cmd.description}`
-      );
-      return embed("default", `# ${c.name}`, lines);
+      const lines = (c.highlights || [])
+        .map((name) => c.commands.find((cmd) => cmd.name === name))
+        .filter(Boolean)
+        .map((cmd) => `${cmd.name}${cmd.args ? " " + cmd.args : ""} — ${cmd.description}`);
+      lines.push(`그 외에도 더 있어요 — #${c.name}에서 "/"만 입력해보세요.`);
+      return embed("default", `# ${c.name}`, [c.intro, ...lines]);
     });
   }
 

@@ -85,6 +85,10 @@
   }
 
   function renderEntry(entry) {
+    if (entry.kind === "interaction") {
+      return renderInteractionEntry(entry);
+    }
+
     const row = document.createElement("div");
     row.className = "msg";
 
@@ -114,6 +118,38 @@
       textEl.textContent = entry.text;
       body.appendChild(textEl);
     }
+
+    row.appendChild(avatar);
+    row.appendChild(body);
+    messagesEl.appendChild(row);
+    return row;
+  }
+
+  // 명령어 실행: "나 ▸ /명령어" 태그 한 줄 + 마리 응답 임베드를 한 덩어리로 붙여서
+  // 유저 메시지와 봇 응답을 따로따로 두 줄 보내지 않고 한 번에 보여준다.
+  function renderInteractionEntry(entry) {
+    const row = document.createElement("div");
+    row.className = "msg interaction";
+
+    const avatar = document.createElement("div");
+    avatar.className = "avatar marie";
+    avatar.textContent = "마리";
+
+    const body = document.createElement("div");
+    body.className = "msg-body";
+
+    const tagLine = document.createElement("div");
+    tagLine.className = "interaction-tag";
+    const tagText = document.createElement("span");
+    tagText.textContent = `나 ▸ ${entry.command}`;
+    const timeSpan = document.createElement("span");
+    timeSpan.className = "msg-time";
+    timeSpan.textContent = entry.time || timeNow();
+    tagLine.appendChild(tagText);
+    tagLine.appendChild(timeSpan);
+
+    body.appendChild(tagLine);
+    body.appendChild(buildEmbedCard(entry.embed));
 
     row.appendChild(avatar);
     row.appendChild(body);
@@ -337,31 +373,28 @@
   }
 
   function handleCommandChannel(text, channel) {
-    pushLog(channel.id, { who: "user", kind: "text", text });
-
     if (text === "에바시" && channel.type === "commands") {
-      pushLog(channel.id, { who: "marie", kind: "embed", embed: MariCommands.evashi() });
+      pushLog(channel.id, { kind: "interaction", command: text, embed: MariCommands.evashi() });
       return;
     }
 
     if (!text.startsWith("/")) {
       pushLog(channel.id, {
-        who: "marie",
-        kind: "embed",
+        kind: "interaction",
+        command: text,
         embed: { tone: "error", title: "명령어 전용 채널", lines: ["여긴 명령어 전용 채널이야. /로 시작해봐! (예: " + channel.commands[0].name + ")"] },
       });
       return;
     }
 
     const result = MariCommands.execute(text, channel, isAdmin());
-    pushLog(channel.id, { who: "marie", kind: "embed", embed: result });
+    pushLog(channel.id, { kind: "interaction", command: text, embed: result });
   }
 
   function handleIdRegister(text, channel) {
-    pushLog(channel.id, { who: "user", kind: "text", text });
     const result = MariCommands.registerId(text);
     if (result) {
-      pushLog(channel.id, { who: "marie", kind: "embed", embed: result });
+      pushLog(channel.id, { kind: "interaction", command: `${text} (자동 삭제됨)`, embed: result });
     }
     // null이면 아이디 시도로 보지 않고 그냥 잡담으로 취급해 조용히 둔다 (실제 봇과 동일)
   }
